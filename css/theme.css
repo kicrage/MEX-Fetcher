@@ -1,0 +1,75 @@
+/*
+ * Theme tokens. codex.css defines the light theme on :root; this file adds app-specific tokens and the dark
+ * overrides. <html data-theme="dark|light"> is set by js/theme.js (resolved from the user's choice / OS setting).
+ */
+:root {
+    color-scheme: light;
+    --graph-dep: #36c;
+    --graph-user: #b32424;
+    --graph-unknown-border: #c8ccd1;
+}
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-base: #eaecf0;
+    --color-neutral: #dadde3;
+    --color-emphasized: #fff;
+    --color-subtle: #a2a9b1;
+    --color-placeholder: #939aa3;
+    --color-disabled: #72777d;
+    --color-disabled-emphasized: #8e949b;
+    --color-progressive: #88a3e8;
+    --color-progressive--hover: #a4b9ef;
+    --color-progressive--active: #c3d1f6;
+    --color-visited: #a99fe0;
+    --color-visited--hover: #c0b7f0;
+    --color-visited--active: #d5d0f6;
+    --color-error: #ff8a7a;
+    --color-icon-notice: #a2a9b1;
+    --color-icon-progressive: #88a3e8;
+    --color-icon-error: #ff8a7a;
+
+    --background-color-base: #101418;
+    --background-color-neutral-subtle: #1a1d21;
+    --background-color-interactive-subtle: #202328;
+    --background-color-interactive-subtle--hover: #2c3036;
+    --background-color-interactive-subtle--active: #3a3f45;
+    --background-color-disabled: #3a3f45;
+    --background-color-disabled-subtle: #2c3036;
+    --background-color-progressive: #3a63c7;
+    --background-color-progressive--hover: #4770d3; /* white text: 4.6:1 */
+    --background-color-progressive--active: #2c4fa3;
+    --background-color-progressive-subtle: #1b2b52;
+    --background-color-error-subtle: #4a1f1a;
+    --background-color-notice-subtle: #2c3036;
+
+    --border-color-base: #72777d;
+    --border-color-subtle: #3a3f45;
+    --border-color-interactive: #a2a9b1;
+    --border-color-interactive--hover: #eaecf0;
+    --border-color-interactive--active: #fff;
+    --border-color-disabled: #3a3f45;
+    --border-color-progressive: #88a3e8;
+    --border-color-progressive--focus: #88a3e8;
+    --border-color-error: #ff8a7a;
+    --border-color-notice: #a2a9b1;
+    --box-shadow-color-progressive--focus: #88a3e8;
+    --box-shadow-color-inverted: #101418;
+
+    --graph-dep: #88a3e8;
+    --graph-user: #ff8a7a;
+    --graph-unknown-border: #3a3f45;
+}
+
+/* The Codex icons are masks coloured with currentcolor, so they follow the tokens above. */
+:root[data-theme="dark"] .cdx-checkbox__input:enabled:checked:not(:indeterminate) + .cdx-checkbox__icon::before {
+    border-color: #fff;
+}
+
+.page-tools {
+    display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: flex-end; align-items: center;
+    margin-bottom: 8px; font-size: var(--font-size-small);
+}
+.page-tools label { color: var(--color-subtle); margin-right: 4px; }
+.page-tools .select { min-height: 28px; padding-top: 2px; padding-bottom: 2px; }

@@ -1,0 +1,9 @@
+{
+  "name": "mex-fetcher",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx http-server -p 8080 -c-1",
+    "test": "node --test tests/*.test.js"
+  }
+}

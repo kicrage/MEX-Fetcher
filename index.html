@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>MEX Fetcher</title>
+    <script>
+        // Apply the saved/system theme before first paint (no flash). Keep in sync with js/theme.js.
+        (function () {
+            var mode = 'auto';
+            try { mode = localStorage.getItem('mex:theme') || 'auto'; } catch (e) { }
+            var dark = mode === 'dark' || (mode !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        })();
+    </script>
+    <link rel="stylesheet" href="css/codex.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/theme.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="page-tools">
+            <span>
+                <label for="lang-select" data-i18n="tools.language">言語</label>
+                <select id="lang-select" class="select">
+                    <option value="ja">日本語</option>
+                    <option value="en">English</option>
+                </select>
+            </span>
+            <span>
+                <label for="theme-select" data-i18n="tools.theme">テーマ</label>
+                <select id="theme-select" class="select">
+                    <option value="auto" data-i18n="tools.themeAuto">自動</option>
+                    <option value="light" data-i18n="tools.themeLight">ライト</option>
+                    <option value="dark" data-i18n="tools.themeDark">ダーク</option>
+                </select>
+            </span>
+        </div>
+
+        <header class="page-header">
+            <h1>MEX Fetcher</h1>
+            <p class="page-subtitle" data-i18n="app.subtitle1">MediaWikiサイトの拡張機能を取得・比較し、依存関係の確認や別サイトへの移植チェックができます。</p>
+            <p class="page-subtitle" data-i18n="app.subtitle2">サイトのURL（記事のURLでも可）を指定してください。</p>
+        </header>
+
+        <form id="fetch-form" class="panel" novalidate>
+            <div id="site-rows"></div>
+            <div class="button-row add-site-row">
+                <button id="add-site" type="button" class="cdx-button" data-i18n="sites.add">サイトを追加</button>
+            </div>
+
+            <fieldset class="cdx-field">
+                <legend class="cdx-label"><span class="cdx-label__label__text" data-i18n="opts.legend">取得・表示項目</span></legend>
+                <div class="checkbox-group">
+                    <div class="cdx-checkbox">
+                        <div class="cdx-checkbox__wrapper">
+                            <input id="opt-name" class="cdx-checkbox__input" type="checkbox" checked disabled>
+                            <span class="cdx-checkbox__icon"></span>
+                            <div class="cdx-checkbox__label cdx-label"><label class="cdx-label__label" for="opt-name"><span class="cdx-label__label__text" data-i18n="opts.name">名称</span></label></div>
+                        </div>
+                    </div>
+                    <div class="cdx-checkbox">
+                        <div class="cdx-checkbox__wrapper">
+                            <input id="opt-version" class="cdx-checkbox__input" type="checkbox" checked>
+                            <span class="cdx-checkbox__icon"></span>
+                            <div class="cdx-checkbox__label cdx-label"><label class="cdx-label__label" for="opt-version"><span class="cdx-label__label__text" data-i18n="opts.version">バージョン</span></label></div>
+                        </div>
+                    </div>
+                    <div class="cdx-checkbox">
+                        <div class="cdx-checkbox__wrapper">
+                            <input id="opt-url" class="cdx-checkbox__input" type="checkbox" checked>
+                            <span class="cdx-checkbox__icon"></span>
+                            <div class="cdx-checkbox__label cdx-label"><label class="cdx-label__label" for="opt-url"><span class="cdx-label__label__text">URL</span></label></div>
+                        </div>
+                    </div>
+                    <div class="cdx-checkbox">
+                        <div class="cdx-checkbox__wrapper">
+                            <input id="opt-desc" class="cdx-checkbox__input" type="checkbox">
+                            <span class="cdx-checkbox__icon"></span>
+                            <div class="cdx-checkbox__label cdx-label"><label class="cdx-label__label" for="opt-desc"><span class="cdx-label__label__text" data-i18n="opts.description">説明</span></label></div>
+                        </div>
+                    </div>
+                    <div class="cdx-checkbox">
+                        <div class="cdx-checkbox__wrapper">
+                            <input id="opt-history" class="cdx-checkbox__input" type="checkbox" checked>
+                            <span class="cdx-checkbox__icon"></span>
+                            <div class="cdx-checkbox__label cdx-label"><label class="cdx-label__label" for="opt-history"><span class="cdx-label__label__text" data-i18n="opts.history">取得結果を履歴に保存</span></label></div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <button id="fetch-btn" class="cdx-button cdx-button--action-progressive cdx-button--weight-primary" type="submit" data-i18n="fetch.button">データ取得・比較を実行</button>
+
+            <div id="error-msg" class="cdx-message cdx-message--error" role="alert" hidden>
+                <span class="cdx-message__icon" aria-hidden="true"></span>
+                <div class="cdx-message__content"></div>
+            </div>
+            <div id="loading" class="cdx-progress-indicator" role="status" hidden>
+                <div class="cdx-progress-indicator__indicator" aria-hidden="true"></div>
+                <div class="cdx-progress-indicator__label" id="loading-label" data-i18n="fetch.loading">APIからデータを取得中...</div>
+            </div>
+        </form>
+
+        <section id="results" hidden>
+            <div id="sites-summary" class="panel"></div>
+
+            <div class="tabs" role="tablist" data-i18n-attr="aria-label:tabs.label" aria-label="表示切替">
+                <button type="button" class="tab" role="tab" id="tab-compare" aria-controls="pane-compare" aria-selected="true" data-tab="compare" data-i18n="tabs.compare">比較</button>
+                <button type="button" class="tab" role="tab" id="tab-graph" aria-controls="pane-graph" aria-selected="false" data-tab="graph" tabindex="-1" data-i18n="tabs.graph">依存関係</button>
+                <button type="button" class="tab" role="tab" id="tab-port" aria-controls="pane-port" aria-selected="false" data-tab="port" tabindex="-1" data-i18n="tabs.port">移植チェック</button>
+                <button type="button" class="tab" role="tab" id="tab-history" aria-controls="pane-history" aria-selected="false" data-tab="history" tabindex="-1" data-i18n="tabs.history">履歴</button>
+            </div>
+            <div id="pane-compare" role="tabpanel" aria-labelledby="tab-compare" class="tabpanel"></div>
+            <div id="pane-graph" role="tabpanel" aria-labelledby="tab-graph" class="tabpanel" hidden></div>
+            <div id="pane-port" role="tabpanel" aria-labelledby="tab-port" class="tabpanel" hidden></div>
+            <div id="pane-history" role="tabpanel" aria-labelledby="tab-history" class="tabpanel" hidden></div>
+        </section>
+
+        <div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
+
+        <footer>
+            <p>Orangemedia Services, by <a href="https://nigiwashi.net">The Nigiwashi Project</a></p>
+        </footer>
+    </div>
+
+    <dialog id="paste-dialog" class="dialog" aria-labelledby="paste-title">
+        <form method="dialog" id="paste-form">
+            <h2 id="paste-title" data-i18n="paste.title">siteinfo JSON を貼り付け</h2>
+            <p class="cdx-field__help-text" data-i18n="paste.help">APIにブラウザから直接アクセスできない（CORS非対応）サイト向けです。次のURLをご自身のブラウザで開き、表示されたJSONをすべてコピーして貼り付けてください。MEXのスナップショットJSONも使えます。</p>
+            <p><a id="paste-open" href="#" target="_blank" rel="noopener noreferrer"></a></p>
+            <label class="cdx-label__label__text" for="paste-text">JSON</label>
+            <textarea id="paste-text" class="dialog__textarea" spellcheck="false" rows="10"></textarea>
+            <label class="cdx-label__label__text" for="paste-label" data-i18n="paste.label">表示名（任意）</label>
+            <div class="cdx-text-input"><input id="paste-label" class="cdx-text-input__input" type="text" autocomplete="off"></div>
+            <div id="paste-error" class="cdx-message cdx-message--error" role="alert" hidden>
+                <span class="cdx-message__icon" aria-hidden="true"></span>
+                <div class="cdx-message__content"></div>
+            </div>
+            <div class="button-row dialog__actions">
+                <button type="submit" id="paste-ok" value="ok" class="cdx-button cdx-button--action-progressive cdx-button--weight-primary" data-i18n="paste.ok">取り込む</button>
+                <button type="button" id="paste-cancel" class="cdx-button" data-i18n="paste.cancel">キャンセル</button>
+            </div>
+        </form>
+    </dialog>
+
+    <input id="file-input" type="file" accept="application/json,.json" hidden>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
